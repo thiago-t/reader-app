@@ -57,7 +57,7 @@ fun Home(navController: NavHostController = NavHostController(LocalContext.curre
         },
         floatingActionButton = {
             FABContent {
-
+                navController.navigate(ReaderScreens.SearchScreen.name)
             }
         },
     ) { paddingValues ->
