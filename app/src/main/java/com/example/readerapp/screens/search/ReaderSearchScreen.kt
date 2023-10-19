@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -23,6 +22,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -37,18 +37,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.readerapp.components.InputField
 import com.example.readerapp.components.ReaderAppTopBar
-import com.example.readerapp.model.MBook
-import com.example.readerapp.navigation.ReaderScreens
+import com.example.readerapp.model.Item
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun ReaderSearchScreen(navController: NavController) {
+fun ReaderSearchScreen(
+    navController: NavController,
+    viewModel: ReaderSearchScreenViewModel = hiltViewModel()
+) {
     Scaffold(topBar = {
         ReaderAppTopBar(
             title = "Search Books",
@@ -68,34 +72,37 @@ fun ReaderSearchScreen(navController: NavController) {
                 SearchForm(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-
+                        .padding(16.dp),
+                    viewModel = viewModel
+                ) { query ->
+                    viewModel.searchBooks(query)
                 }
                 Spacer(modifier = Modifier.height(8.dp))
-                val books = listOf(
-                    MBook(title = "Hello again", authors = "All of us"),
-                    MBook(title = "Hello 2", authors = "All of us"),
-                    MBook(title = "Hello Very good", authors = "All of us"),
-                    MBook(title = "Hello AMIGOS da rede gLoBo", authors = "All of us")
-                )
-                SearchBooksList(books, navController)
+                SearchBooksList(navController, viewModel)
             }
         }
     }
 }
 
 @Composable
-fun SearchBooksList(books: List<MBook>, navController: NavController) {
-    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
-        items(items = books) { book ->
-            BooksRow(book, navController)
+fun SearchBooksList(
+    navController: NavController,
+    viewModel: ReaderSearchScreenViewModel = hiltViewModel()
+) {
+    val listOfBooks = viewModel.list
+    if (viewModel.isLoading) {
+        LinearProgressIndicator()
+    } else {
+        LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
+            items(items = listOfBooks) { book ->
+                BooksRow(book, navController)
+            }
         }
     }
 }
 
 @Composable
-fun BooksRow(book: MBook, navController: NavController) {
+fun BooksRow(book: Item, navController: NavController) {
     Card(
         modifier = Modifier
             .clickable { }
@@ -108,7 +115,9 @@ fun BooksRow(book: MBook, navController: NavController) {
     ) {
         Row(modifier = Modifier.padding(5.dp), verticalAlignment = Alignment.Top) {
             val imageUrl =
-                "http://books.google.com/books/content?id=mmx3CgAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+                if (book.volumeInfo.imageLinks?.thumbnail?.isNotEmpty() == true) book.volumeInfo.imageLinks.thumbnail else {
+                    "http://books.google.com/books/content?id=UKTJDwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+                }
             Image(
                 painter = rememberAsyncImagePainter(model = imageUrl),
                 contentDescription = "Book Image",
@@ -118,10 +127,29 @@ fun BooksRow(book: MBook, navController: NavController) {
                     .padding(end = 4.dp)
             )
             Column {
-                Text(text = book.title.toString(), overflow = TextOverflow.Ellipsis)
                 Text(
-                    text = "Authors: ${book.authors.toString()}",
+                    text = book.volumeInfo.title,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Text(
+                    text = "Authors: ${book.volumeInfo.authors}",
                     overflow = TextOverflow.Ellipsis,
+                    fontStyle = FontStyle.Italic,
+                    style = MaterialTheme.typography.labelSmall
+                )
+
+                Text(
+                    text = "Date: ${book.volumeInfo.publishedDate}",
+                    overflow = TextOverflow.Ellipsis,
+                    fontStyle = FontStyle.Italic,
+                    style = MaterialTheme.typography.labelSmall
+                )
+
+                Text(
+                    text = "Category: ${book.volumeInfo.categories.first()}",
+                    overflow = TextOverflow.Ellipsis,
+                    fontStyle = FontStyle.Italic,
                     style = MaterialTheme.typography.labelSmall
                 )
             }
@@ -133,6 +161,7 @@ fun BooksRow(book: MBook, navController: NavController) {
 @Composable
 fun SearchForm(
     modifier: Modifier = Modifier,
+    viewModel: ReaderSearchScreenViewModel,
     loading: Boolean = false,
     hint: String = "Search",
     onSearch: (String) -> Unit = {}
