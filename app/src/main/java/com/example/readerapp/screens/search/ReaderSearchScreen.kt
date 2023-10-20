@@ -1,7 +1,10 @@
 package com.example.readerapp.screens.search
 
+import android.telecom.Call.Details
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
@@ -44,8 +47,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.readerapp.components.InputField
+import com.example.readerapp.components.LinearLoader
 import com.example.readerapp.components.ReaderAppTopBar
 import com.example.readerapp.model.Item
+import com.example.readerapp.navigation.ReaderScreens
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -91,7 +96,7 @@ fun SearchBooksList(
 ) {
     val listOfBooks = viewModel.list
     if (viewModel.isLoading) {
-        LinearProgressIndicator()
+        LinearLoader()
     } else {
         LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(16.dp)) {
             items(items = listOfBooks) { book ->
@@ -105,7 +110,9 @@ fun SearchBooksList(
 fun BooksRow(book: Item, navController: NavController) {
     Card(
         modifier = Modifier
-            .clickable { }
+            .clickable {
+                navController.navigate(ReaderScreens.DetailsScreen.name + "/${book.id}")
+            }
             .fillMaxWidth()
             .height(100.dp)
             .padding(3.dp),
