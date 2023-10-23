@@ -264,7 +264,7 @@ fun BookRating(score: Double = 4.5) {
 
 @Composable
 fun ListCard(
-    book: MBook = MBook("09gsadas6123f", "Running", "Me and you", "hello world"),
+    book: MBook,
     onPressDetails: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -288,7 +288,7 @@ fun ListCard(
         ) {
             Row(horizontalArrangement = Arrangement.Center) {
                 Image(
-                    painter = rememberAsyncImagePainter(model = "http://books.google.com/books/content?id=-1y8CwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"),
+                    painter = rememberAsyncImagePainter(model = book.photoUrl.toString()),
                     contentDescription = "Book image",
                     modifier = Modifier
                         .height(140.dp)

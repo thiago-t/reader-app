@@ -1,7 +1,6 @@
 package com.example.readerapp.screens.home
 
 import android.util.Log
-import android.widget.HorizontalScrollView
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -15,9 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Divider
@@ -30,14 +27,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.readerapp.components.FABContent
@@ -50,7 +45,10 @@ import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun Home(navController: NavHostController = NavHostController(LocalContext.current)) {
+fun Home(
+    navController: NavHostController = NavHostController(LocalContext.current),
+    homeScreenViewModel: ReaderHomeScreenViewModel = hiltViewModel()
+) {
     Scaffold(
         topBar = {
             ReaderAppTopBar(title = " A.Reader", navController = navController)
@@ -67,19 +65,21 @@ fun Home(navController: NavHostController = NavHostController(LocalContext.curre
                 .padding(paddingValues)
                 .consumeWindowInsets(paddingValues)
         ) {
-            HomeContent(navController)
+            HomeContent(navController, homeScreenViewModel)
         }
     }
 }
 
 @Composable
-fun HomeContent(navController: NavController) {
-    val books = listOf(
-        MBook(title = "Hello again", authors = "All of us"),
-        MBook(title = "Hello 2", authors = "All of us"),
-        MBook(title = "Hello Very good", authors = "All of us"),
-        MBook(title = "Hello AMIGOS da rede gLoBo", authors = "All of us")
-    )
+fun HomeContent(navController: NavController, homeScreenViewModel: ReaderHomeScreenViewModel) {
+    var books = emptyList<MBook>()
+    val currentUser = FirebaseAuth.getInstance().currentUser
+
+    if (!homeScreenViewModel.data.value.data.isNullOrEmpty()) {
+        books = homeScreenViewModel.data.value?.data?.toList()?.filter { mBook ->
+            mBook.userId == currentUser?.uid.toString()
+        } ?: emptyList()
+    }
 
     val email = FirebaseAuth.getInstance().currentUser?.email
     val currentUserName = if (!email.isNullOrEmpty())
@@ -120,8 +120,7 @@ fun HomeContent(navController: NavController) {
 @Composable
 fun BookListArea(listOfBooks: List<MBook>, navController: NavController) {
     HorizontalScrollableComponent(listOfBooks) {
-        Log.d("DEBUG", "${it.title}")
-        // onCardClicked
+        navController.navigate(ReaderScreens.UpdateScreen.name + "/${it.id}")
     }
 }
 
@@ -145,5 +144,5 @@ fun HorizontalScrollableComponent(listOfBooks: List<MBook>, onCardPressed: (MBoo
 
 @Composable
 fun ReadingRightNowArea(books: List<MBook>, navController: NavController) {
-    ListCard()
+    ListCard(MBook())
 }

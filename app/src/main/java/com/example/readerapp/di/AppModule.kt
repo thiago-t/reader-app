@@ -2,7 +2,10 @@ package com.example.readerapp.di
 
 import com.example.readerapp.network.BooksApi
 import com.example.readerapp.repository.BookRepository
+import com.example.readerapp.repository.FireRepository
 import com.example.readerapp.utils.Constants
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,5 +31,10 @@ object AppModule {
     @Singleton
     @Provides
     fun provideBookRepository(api: BooksApi) = BookRepository(api)
+
+    @Singleton
+    @Provides
+    fun provideFireBookRepository() =
+        FireRepository(FirebaseFirestore.getInstance().collection("books"))
 
 }
