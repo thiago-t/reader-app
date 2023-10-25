@@ -1,4 +1,6 @@
 <resources>
-    <string name="app_name">ReaderApp</string>
-    <string name="msg_create_account">Please enter a valid email and password that is at least 6 characters.</string>
+    <string name="app_name" translatable="false">ReaderApp</string>
+    <string name="msg_create_account" translatable="false">Please enter a valid email and password that is at least 6 characters.</string>
+    <string name="msg_are_you_sure" translatable="false">Are you sure you want to delete this book?</string>
+    <string name="msg_cannot_undone" translatable="false">This action cannot be undone!</string>
 </resources>
